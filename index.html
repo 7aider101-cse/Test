@@ -1,0 +1,423 @@
+<!DOCTYPE html>
+<html lang="ar">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>نظام تسجيل الحضور</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.17.3/xlsx.full.min.js"></script>
+  <style>
+    body {
+      font-family: 'Arial', sans-serif;
+      direction: rtl;
+      text-align: right;
+      margin: 0;
+      padding: 0;
+      background-color: #f4f7fb;
+      color: #4a4a4a;
+    }
+    .container {
+      background: #ffffff;
+      padding: 30px;
+      border-radius: 12px;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+      max-width: 100%;
+      box-sizing: border-box;
+      margin: 20px auto;
+      font-size: 16px;
+      border: 1px solid #dde1e7;
+    }
+    h2 {
+      color: #2a4d6d;
+      font-size: 24px;
+      margin-bottom: 20px;
+    }
+    label {
+      font-size: 18px;
+      font-weight: bold;
+      color: #3e4751;
+    }
+    select, input, button {
+      margin: 10px 0;
+      padding: 12px;
+      font-size: 16px;
+      border-radius: 8px;
+      border: 1px solid #ced4da;
+      outline: none;
+      transition: background-color 0.3s, box-shadow 0.3s;
+      background-color: #fafbfc;
+    }
+    select:focus, input:focus, button:focus {
+      border-color: #6c8ed4;
+      box-shadow: 0 0 0 0.25rem rgba(108, 142, 212, 0.5);
+    }
+    /* اللون الافتراضي لجميع أزرار الحضور/الغياب هو الرمادي */
+    .attendance-btns button {
+      background-color: #6c757d;
+      color: white;
+      border: none;
+      border-radius: 8px;
+      padding: 10px 15px;
+      font-size: 16px;
+      transition: background-color 0.3s, opacity 0.3s;
+      cursor: pointer;
+    }
+    /* عند تحديد الحضور يصبح زر الحضور أخضر */
+    .present-btn.selected {
+      background-color: #28a745;
+    }
+    /* عند تحديد الغياب يصبح زر الغياب أحمر */
+    .absent-btn.selected {
+      background-color: #dc3545;
+    }
+    /* عند اختيار "إلغاء التحديد" يصبح الزر أبيض مع نص أسود */
+    .unset-btn.selected {
+      background-color: white;
+      color: black;
+    }
+    .reset-btn {
+      background-color: #ffc107;
+      color: white;
+      border: none;
+      border-radius: 8px;
+      padding: 12px;
+      font-size: 16px;
+      cursor: pointer;
+      transition: background-color 0.3s, opacity 0.3s;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 20px;
+    }
+    th, td {
+      border: 1px solid #dde1e7;
+      padding: 12px;
+      text-align: center;
+      font-size: 16px;
+      background-color: #f8f9fa;
+    }
+    th {
+      background-color: #e8eef3;
+      color: #2a4d6d;
+    }
+    .attendance-btns {
+      display: flex;
+      justify-content: center;
+      gap: 5px;
+    }
+    .selected {
+      opacity: 0.9;
+      font-weight: bold;
+    }
+    @media (max-width: 768px) {
+      .container {
+        padding: 15px;
+      }
+      table {
+        font-size: 14px;
+      }
+      h2 {
+        font-size: 20px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <main class="container">
+    <h2>نظام تسجيل الحضور</h2>
+    <p>📅 التاريخ: <span id="currentDate"></span></p>
+    <label for="subject">📚 اختر المادة:</label>
+    <select id="subject">
+      <option>Advanced Cryptography</option>
+      <option>Arabic</option>
+      <option>Database Security</option>
+      <option>Data Structures and Algorithms</option>
+      <option>Internet Protocols</option>
+      <option>Operating Systems</option>
+      <option>Web Programming Security</option>
+    </select>
+    <br>
+    <label for="sectionSelect">🏫 اختر الشعبة:</label>
+    <select id="sectionSelect">
+      <option value="A">A</option>
+      <option value="B">B</option>
+    </select>
+    <p>👥 العدد الكلي: <span id="totalCount">0</span> | ✅ الحضور: <span id="presentCount">0</span> | ❌ الغياب: <span id="absentCount">0</span></p>
+    <table id="attendanceTable" role="table">
+      <thead>
+        <tr>
+          <th>ID</th>
+          <th>الاسم</th>
+          <th>الحضور / الغياب</th>
+        </tr>
+      </thead>
+      <tbody id="studentsTableBody"></tbody>
+    </table>
+    <button class="reset-btn" id="resetAttendanceBtn">🔄 إعادة ضبط</button>
+    <button id="downloadExcelBtn">📥 تحميل Excel</button>
+  </main>
+  <script>
+    // عرض التاريخ الحالي بالتنسيق العربي
+    document.getElementById("currentDate").textContent = new Date().toLocaleDateString("ar-EG");
+
+    // قائمة التلاميذ لشعبة A حسب القائمة المُعطاة مع إضافة "مسائي" للـ ID 9 و40 و41 و48
+    const studentsSectionA = [
+      "ابراهيم داود سلمان حنون",           // ID 1
+      "ابراهيم عدنان کاظم جاسم",            // ID 2
+      "احمد جعفر صالح محمود",               // ID 3
+      "احمد شاكر جعفر عذيب",               // ID 4
+      "احمد عامر جواد کاظم",               // ID 5
+      "احمد عامر طاهر حسون",               // ID 6
+      "احمد عباس حسین جمعه",               // ID 7
+      "احمد عباس عواد جابر",               // ID 8
+      "احمد عباس کاظم حمدان مسائي",        // ID 9 (تمت الإضافة)
+      "احمد عبد المنعم عبد الحميد راشد",    // ID 10
+      "احمد عدي ياس خضير",                // ID 11
+      "احمد علي جمعه علي",                 // ID 12
+      "احمد علي شذر زايد",                 // ID 13
+      "احمد فراس خضير حسين",               // ID 14
+      "احمد فرحان خلف هويدي",             // ID 15
+      "احمد مهند احمد محمد",               // ID 16
+      "احمد موفق صاحب داود",               // ID 17
+      "اریفان فرهاد طاهر کاکه خان",          // ID 18
+      "اسامة حسن ضاري انغيمش",              // ID 19
+      "اسامه نهاد محسن احمد",              // ID 20
+      "الأمير علي محيسن خلف",              // ID 21
+      "الحسن فاضل حسین سرحان",             // ID 22
+      "الحمزه قاسم علي صحن",              // ID 23
+      "المرتضى مالك محسن عبد السادة",      // ID 24
+      "امنه عبد الصمد ذنون احمد",         // ID 25
+      "امیر حسنین هاشم محمد",             // ID 26
+      "امير عبد الرحمن مزعل حسين",          // ID 27
+      "امیر قاسم سوادي محمد",             // ID 28
+      "اميمة سعد عبد المطلب خلف",          // ID 29
+      "اواب حمزة عباس",                   // ID 30
+      "اوس محمد حمید احمد",               // ID 31
+      "بارق رعد فاضل حسين",                // ID 32
+      "جاسم محمد حسین شیال",               // ID 33
+      "حسن عباس علي حسين",                // ID 34
+      "حسين فتح الله حسب الله حمود",       // ID 35
+      "رسول صميم كريدي عنفوص",            // ID 36
+      "روان علي عادل عبد الوهاب",          // ID 37
+      "زهراء محمد بدر جدوع",              // ID 38
+      "زين العابدين علاوي عبد الحسين",     // ID 39
+      "سبأ وليد محمد مسائي",              // ID 40 (تمت الإضافة)
+      "سجى محمد حمید عباس مسائي",         // ID 41 (تمت الإضافة)
+      "ضحى عبد الله حسن علي",              // ID 42
+      "عباس وليد خالد نشعان",              // ID 43
+      "قتادة شاكر جعفر عذيب",              // ID 44
+      "محمد جواد رشید یاسر گزار",          // ID 45
+      "محمد حسام محمد عبد الله",           // ID 46
+      "محمد هاشم محمد شمس الدين",           // ID 47
+      "مرتضی ریاض حسن علوان مسائي",        // ID 48 (تمت الإضافة)
+      "مصطفى صلاح الدين ابراهيم جاسم",     // ID 49
+      "ميس وسام عبد الله مهدي",            // ID 50
+      "ياسر عمار بدري صبري",              // ID 51
+      "ياسين حيدر حمزة محمد حسين",          // ID 52
+      "ياسر طاهر"                         // ID 53
+    ];
+
+    // قائمة التلاميذ لشعبة B كما هي (يمكن تعديلها لاحقًا إذا رغبت)
+    const studentsSectionB = [
+      "احمد علاء حسين هراطه", "اروى محمد فارس عناد", "امیر خضير عباس جاسم", "تكتم فؤاد عبد الحكيم عبد الرزاق",
+      "حسن على جلوب شامي", "حسن كريم شنيشل حسين", "حسن هادي مجبل عباس", "حسنين حيدر جميل عبد الحسين",
+      "حسين ابراهيم كاظم علي", "حسين احمد آباد مهدي", "حسين حميد حسين مالح", "حسین سنان ابراهيم مراد",
+      "حسین صالح عزیز سالم", "حسين صباح سالم سكر", "حسين صميم سعدون صلاح", "حسين ظافر خلف محسن",
+      "حسين علي عبد الله جرمط", "حسين علي غافل روضان", "حسين علي فيصل طاهر", "حسين فلاح كريم حسين",
+      "حنان طه محسن حمود", "حيدر اسماعيل فرج", "حيدر سمير عبد سلطان", "حيدر طلال كاظم محمد",
+      "حيدر عامر مجبل سلمان", "حيدر عصام هادي عبود", "حيدر علي لطيف طالب لطيف", "حيدر محمد معروف راشد",
+      "رافت خالد عبد اللطيف جاسم", "رسول صميم كريدي عنقوص", "رضا عبد الحسين علي حسين", "رعد عبد الله جاسم محمد علي",
+      "رند عماد علي ضاحي", "زید حامد سعدون هادي", "زيد علي محمد محسن", "زين العابدين صبيح كرم زامل",
+      "سجاد سليم ابراهيم أحمد", "عباس هادي محسن محمد", "عبد المهيمن صلاح فاضل مخيف", "عسل مهند غسان ابو ايوب",
+      "علي رعد رشيد ابراهيم", "عمار شهاب احمد جیجان", "عمار فريد حسين خلف", "ليث صبري عبادي سلطان",
+      "مجتبى ثامر علي عبيد", "محمد عباس عبد علي", "محمد قاسم عدنان عبد الغفور", "مريم فؤاد عبود حسین",
+      "مصعب فؤاد خلف ذيب", "منتظر وليد عبد الحسين", "نور الحسين محمد صبيح جاسم", "ياسمين خضر تركي سهيل"
+    ];
+
+    // المتغيرات العامة لتحديد الشعبة والقائمة الحالية
+    let currentSection = document.getElementById("sectionSelect").value;
+    let students = currentSection === "A" ? studentsSectionA : studentsSectionB;
+    let attendanceData = getAttendanceData();
+
+    // دوال التخزين المحلي باستخدام مفتاح خاص بكل شعبة
+    function getAttendanceData() {
+      const key = 'attendanceData_' + currentSection;
+      try {
+        const data = JSON.parse(localStorage.getItem(key));
+        if (Array.isArray(data) && data.length === students.length) {
+          return data;
+        }
+      } catch (error) {
+        console.error("Error reading attendance data from localStorage:", error);
+      }
+      return new Array(students.length).fill(null);
+    }
+
+    function setAttendanceData(data) {
+      const key = 'attendanceData_' + currentSection;
+      try {
+        localStorage.setItem(key, JSON.stringify(data));
+      } catch (error) {
+        console.error("Error saving attendance data to localStorage:", error);
+      }
+    }
+
+    // دالة عرض جدول الحضور
+    function renderTable() {
+      const tableBody = document.getElementById("studentsTableBody");
+      tableBody.innerHTML = ""; // مسح الصفوف السابقة
+      students.forEach((student, index) => {
+        const row = document.createElement("tr");
+        const idCell = document.createElement("td");
+        idCell.textContent = index + 1;
+        const nameCell = document.createElement("td");
+        nameCell.textContent = student;
+        const attendanceCell = document.createElement("td");
+        const btnContainer = document.createElement("div");
+        btnContainer.classList.add("attendance-btns");
+
+        // زر الحضور
+        const presentBtn = document.createElement("button");
+        presentBtn.classList.add("present-btn");
+        if (attendanceData[index] === "present") {
+          presentBtn.classList.add("selected");
+        }
+        presentBtn.textContent = "✅ حضور";
+        presentBtn.setAttribute("data-index", index);
+        presentBtn.setAttribute("data-status", "present");
+
+        // زر الغياب
+        const absentBtn = document.createElement("button");
+        absentBtn.classList.add("absent-btn");
+        if (attendanceData[index] === "absent") {
+          absentBtn.classList.add("selected");
+        }
+        absentBtn.textContent = "❌ غياب";
+        absentBtn.setAttribute("data-index", index);
+        absentBtn.setAttribute("data-status", "absent");
+
+        // زر إلغاء التحديد
+        const unsetBtn = document.createElement("button");
+        unsetBtn.classList.add("unset-btn");
+        if (attendanceData[index] === null) {
+          unsetBtn.classList.add("selected");
+        }
+        unsetBtn.textContent = "❔ إلغاء التحديد";
+        unsetBtn.setAttribute("data-index", index);
+        unsetBtn.setAttribute("data-status", "unset");
+
+        btnContainer.appendChild(presentBtn);
+        btnContainer.appendChild(absentBtn);
+        btnContainer.appendChild(unsetBtn);
+        attendanceCell.appendChild(btnContainer);
+
+        row.appendChild(idCell);
+        row.appendChild(nameCell);
+        row.appendChild(attendanceCell);
+        tableBody.appendChild(row);
+      });
+      updateCounts();
+    }
+
+    // دالة تحديث العدادات
+    function updateCounts() {
+      const totalCount = students.length;
+      const presentCount = attendanceData.filter(status => status === "present").length;
+      const absentCount = attendanceData.filter(status => status === "absent").length;
+      document.getElementById("totalCount").textContent = totalCount;
+      document.getElementById("presentCount").textContent = presentCount;
+      document.getElementById("absentCount").textContent = absentCount;
+    }
+
+    // التفويض لمعالجة نقرات الأزرار داخل الجدول
+    document.getElementById("studentsTableBody").addEventListener("click", function(e) {
+      const target = e.target;
+      if (target.tagName.toLowerCase() === "button") {
+        const index = target.getAttribute("data-index");
+        const status = target.getAttribute("data-status");
+        attendanceData[index] = (status === "unset") ? null : status;
+        setAttendanceData(attendanceData);
+        renderTable();
+      }
+    });
+
+    // إعادة الضبط وتنزيل الملف
+    document.getElementById("resetAttendanceBtn").addEventListener("click", function() {
+      attendanceData = new Array(students.length).fill(null);
+      setAttendanceData(attendanceData);
+      renderTable();
+    });
+
+    document.getElementById("downloadExcelBtn").addEventListener("click", function() {
+      downloadExcel();
+    });
+
+    function downloadExcel() {
+      const subject = document.getElementById("subject").value;
+      const section = document.getElementById("sectionSelect").value;
+      const date = new Date().toLocaleDateString("en-GB");
+      const totalCount = students.length;
+      const presentCount = attendanceData.filter(status => status === "present").length;
+      const absentCount = attendanceData.filter(status => status === "absent").length;
+
+      const wb = XLSX.utils.book_new();
+      const headerInfo = [
+        ["تاريخ اليوم:", date],
+        ["المادة:", subject],
+        ["الشعبة:", section],
+        ["العدد الكلي:", totalCount, "الحضور:", presentCount, "الغياب:", absentCount],
+        [],
+        ["ID", "الاسم", "الحضور / الغياب"]
+      ];
+
+      students.forEach((student, index) => {
+        headerInfo.push([
+          index + 1,
+          student,
+          attendanceData[index] === "present"
+            ? "حضور"
+            : attendanceData[index] === "absent"
+              ? "غياب"
+              : ""
+        ]);
+      });
+
+      const ws = XLSX.utils.aoa_to_sheet(headerInfo);
+      ws["!cols"] = [
+        { wch: 7 },
+        { wch: 25 },
+        { wch: 10 }
+      ];
+      ["A1", "B1", "A2", "B2", "A3", "B3"].forEach(cell => {
+        if (ws[cell]) {
+          ws[cell].s = { font: { sz: 16 } };
+        }
+      });
+      if (ws["B6"]) {
+        ws["B6"].s = { font: { sz: 16 } };
+      }
+      for (let i = 0; i < students.length; i++) {
+        const cellAddress = "B" + (7 + i);
+        if (ws[cellAddress]) {
+          ws[cellAddress].s = { font: { sz: 16 } };
+        }
+      }
+      XLSX.utils.book_append_sheet(wb, ws, "الحضور");
+      XLSX.writeFile(wb, "attendance.xlsx", { cellStyles: true });
+    }
+
+    // تحديث قائمة التلاميذ عند تغيير الشعبة
+    function updateStudentsList() {
+      currentSection = document.getElementById("sectionSelect").value;
+      students = currentSection === "A" ? studentsSectionA : studentsSectionB;
+      attendanceData = getAttendanceData();
+      renderTable();
+    }
+
+    document.getElementById("sectionSelect").addEventListener("change", updateStudentsList);
+
+    // العرض الابتدائي للجدول
+    renderTable();
+  </script>
+</body>
+</html>
