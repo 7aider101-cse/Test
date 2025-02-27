@@ -50,7 +50,6 @@
       border-color: #6c8ed4;
       box-shadow: 0 0 0 0.25rem rgba(108, 142, 212, 0.5);
     }
-    /* اللون الافتراضي لجميع أزرار الحضور/الغياب هو الرمادي */
     .attendance-btns button {
       background-color: #6c757d;
       color: white;
@@ -61,15 +60,12 @@
       transition: background-color 0.3s, opacity 0.3s;
       cursor: pointer;
     }
-    /* عند تحديد الحضور يصبح زر الحضور أخضر */
     .present-btn.selected {
       background-color: #28a745;
     }
-    /* عند تحديد الغياب يصبح زر الغياب أحمر */
     .absent-btn.selected {
       background-color: #dc3545;
     }
-    /* عند اختيار "إلغاء التحديد" يصبح الزر أبيض مع نص أسود */
     .unset-btn.selected {
       background-color: white;
       color: black;
@@ -157,67 +153,64 @@
     <button id="downloadExcelBtn">📥 تحميل Excel</button>
   </main>
   <script>
-    // عرض التاريخ الحالي بالتنسيق العربي
     document.getElementById("currentDate").textContent = new Date().toLocaleDateString("ar-EG");
 
-    // قائمة التلاميذ لشعبة A حسب القائمة المُعطاة مع إضافة "مسائي" للـ ID 9 و40 و41 و48
     const studentsSectionA = [
-      "ابراهيم داود سلمان حنون",           // ID 1
-      "ابراهيم عدنان کاظم جاسم",            // ID 2
-      "احمد جعفر صالح محمود",               // ID 3
-      "احمد شاكر جعفر عذيب",               // ID 4
-      "احمد عامر جواد کاظم",               // ID 5
-      "احمد عامر طاهر حسون",               // ID 6
-      "احمد عباس حسین جمعه",               // ID 7
-      "احمد عباس عواد جابر",               // ID 8
-      "احمد عباس کاظم حمدان مسائي",        // ID 9 (تمت الإضافة)
-      "احمد عبد المنعم عبد الحميد راشد",    // ID 10
-      "احمد عدي ياس خضير",                // ID 11
-      "احمد علي جمعه علي",                 // ID 12
-      "احمد علي شذر زايد",                 // ID 13
-      "احمد فراس خضير حسين",               // ID 14
-      "احمد فرحان خلف هويدي",             // ID 15
-      "احمد مهند احمد محمد",               // ID 16
-      "احمد موفق صاحب داود",               // ID 17
-      "اریفان فرهاد طاهر کاکه خان",          // ID 18
-      "اسامة حسن ضاري انغيمش",              // ID 19
-      "اسامه نهاد محسن احمد",              // ID 20
-      "الأمير علي محيسن خلف",              // ID 21
-      "الحسن فاضل حسین سرحان",             // ID 22
-      "الحمزه قاسم علي صحن",              // ID 23
-      "المرتضى مالك محسن عبد السادة",      // ID 24
-      "امنه عبد الصمد ذنون احمد",         // ID 25
-      "امیر حسنین هاشم محمد",             // ID 26
-      "امير عبد الرحمن مزعل حسين",          // ID 27
-      "امیر قاسم سوادي محمد",             // ID 28
-      "اميمة سعد عبد المطلب خلف",          // ID 29
-      "اواب حمزة عباس",                   // ID 30
-      "اوس محمد حمید احمد",               // ID 31
-      "بارق رعد فاضل حسين",                // ID 32
-      "جاسم محمد حسین شیال",               // ID 33
-      "حسن عباس علي حسين",                // ID 34
-      "حسين فتح الله حسب الله حمود",       // ID 35
-      "رسول صميم كريدي عنفوص",            // ID 36
-      "روان علي عادل عبد الوهاب",          // ID 37
-      "زهراء محمد بدر جدوع",              // ID 38
-      "زين العابدين علاوي عبد الحسين",     // ID 39
-      "سبأ وليد محمد مسائي",              // ID 40 (تمت الإضافة)
-      "سجى محمد حمید عباس مسائي",         // ID 41 (تمت الإضافة)
-      "ضحى عبد الله حسن علي",              // ID 42
-      "عباس وليد خالد نشعان",              // ID 43
-      "قتادة شاكر جعفر عذيب",              // ID 44
-      "محمد جواد رشید یاسر گزار",          // ID 45
-      "محمد حسام محمد عبد الله",           // ID 46
-      "محمد هاشم محمد شمس الدين",           // ID 47
-      "مرتضی ریاض حسن علوان مسائي",        // ID 48 (تمت الإضافة)
-      "مصطفى صلاح الدين ابراهيم جاسم",     // ID 49
-      "ميس وسام عبد الله مهدي",            // ID 50
-      "ياسر عمار بدري صبري",              // ID 51
-      "ياسين حيدر حمزة محمد حسين",          // ID 52
-      "ياسر طاهر"                         // ID 53
+      "ابراهيم داود سلمان حنون",
+      "ابراهيم عدنان کاظم جاسم",
+      "احمد جعفر صالح محمود",
+      "احمد شاكر جعفر عذيب",
+      "احمد عامر جواد کاظم",
+      "احمد عامر طاهر حسون",
+      "احمد عباس حسین جمعه",
+      "احمد عباس عواد جابر",
+      "احمد عباس کاظم حمدان مسائي",
+      "احمد عبد المنعم عبد الحميد راشد",
+      "احمد عدي ياس خضير",
+      "احمد علي جمعه علي",
+      "احمد علي شذر زايد",
+      "احمد فراس خضير حسين",
+      "احمد فرحان خلف هويدي",
+      "احمد مهند احمد محمد",
+      "احمد موفق صاحب داود",
+      "اریفان فرهاد طاهر کاکه خان",
+      "اسامة حسن ضاري انغيمش",
+      "اسامه نهاد محسن احمد",
+      "الأمير علي محيسن خلف",
+      "الحسن فاضل حسین سرحان",
+      "الحمزه قاسم علي صحن",
+      "المرتضى مالك محسن عبد السادة",
+      "امنه عبد الصمد ذنون احمد",
+      "امیر حسنین هاشم محمد",
+      "امير عبد الرحمن مزعل حسين",
+      "امیر قاسم سوادي محمد",
+      "اميمة سعد عبد المطلب خلف",
+      "اواب حمزة عباس",
+      "اوس محمد حمید احمد",
+      "بارق رعد فاضل حسين",
+      "جاسم محمد حسین شیال",
+      "حسن عباس علي حسين",
+      "حسين فتح الله حسب الله حمود",
+      "رسول صميم كريدي عنفوص",
+      "روان علي عادل عبد الوهاب",
+      "زهراء محمد بدر جدوع",
+      "زين العابدين علاوي عبد الحسين",
+      "سبأ وليد محمد مسائي",
+      "سجى محمد حمید عباس مسائي",
+      "ضحى عبد الله حسن علي",
+      "عباس وليد خالد نشعان",
+      "قتادة شاكر جعفر عذيب",
+      "محمد جواد رشید یاسر گزار",
+      "محمد حسام محمد عبد الله",
+      "محمد هاشم محمد شمس الدين",
+      "مرتضی ریاض حسن علوان مسائي",
+      "مصطفى صلاح الدين ابراهيم جاسم",
+      "ميس وسام عبد الله مهدي",
+      "ياسر عمار بدري صبري",
+      "ياسين حيدر حمزة محمد حسين",
+      "ياسر طاهر"
     ];
 
-    // قائمة التلاميذ لشعبة B كما هي (يمكن تعديلها لاحقًا إذا رغبت)
     const studentsSectionB = [
       "احمد علاء حسين هراطه", "اروى محمد فارس عناد", "امیر خضير عباس جاسم", "تكتم فؤاد عبد الحكيم عبد الرزاق",
       "حسن على جلوب شامي", "حسن كريم شنيشل حسين", "حسن هادي مجبل عباس", "حسنين حيدر جميل عبد الحسين",
@@ -234,12 +227,10 @@
       "مصعب فؤاد خلف ذيب", "منتظر وليد عبد الحسين", "نور الحسين محمد صبيح جاسم", "ياسمين خضر تركي سهيل"
     ];
 
-    // المتغيرات العامة لتحديد الشعبة والقائمة الحالية
     let currentSection = document.getElementById("sectionSelect").value;
     let students = currentSection === "A" ? studentsSectionA : studentsSectionB;
     let attendanceData = getAttendanceData();
 
-    // دوال التخزين المحلي باستخدام مفتاح خاص بكل شعبة
     function getAttendanceData() {
       const key = 'attendanceData_' + currentSection;
       try {
@@ -262,10 +253,9 @@
       }
     }
 
-    // دالة عرض جدول الحضور
     function renderTable() {
       const tableBody = document.getElementById("studentsTableBody");
-      tableBody.innerHTML = ""; // مسح الصفوف السابقة
+      tableBody.innerHTML = "";
       students.forEach((student, index) => {
         const row = document.createElement("tr");
         const idCell = document.createElement("td");
@@ -276,7 +266,6 @@
         const btnContainer = document.createElement("div");
         btnContainer.classList.add("attendance-btns");
 
-        // زر الحضور
         const presentBtn = document.createElement("button");
         presentBtn.classList.add("present-btn");
         if (attendanceData[index] === "present") {
@@ -286,7 +275,6 @@
         presentBtn.setAttribute("data-index", index);
         presentBtn.setAttribute("data-status", "present");
 
-        // زر الغياب
         const absentBtn = document.createElement("button");
         absentBtn.classList.add("absent-btn");
         if (attendanceData[index] === "absent") {
@@ -296,7 +284,6 @@
         absentBtn.setAttribute("data-index", index);
         absentBtn.setAttribute("data-status", "absent");
 
-        // زر إلغاء التحديد
         const unsetBtn = document.createElement("button");
         unsetBtn.classList.add("unset-btn");
         if (attendanceData[index] === null) {
@@ -319,7 +306,6 @@
       updateCounts();
     }
 
-    // دالة تحديث العدادات
     function updateCounts() {
       const totalCount = students.length;
       const presentCount = attendanceData.filter(status => status === "present").length;
@@ -329,7 +315,6 @@
       document.getElementById("absentCount").textContent = absentCount;
     }
 
-    // التفويض لمعالجة نقرات الأزرار داخل الجدول
     document.getElementById("studentsTableBody").addEventListener("click", function(e) {
       const target = e.target;
       if (target.tagName.toLowerCase() === "button") {
@@ -341,7 +326,6 @@
       }
     });
 
-    // إعادة الضبط وتنزيل الملف
     document.getElementById("resetAttendanceBtn").addEventListener("click", function() {
       attendanceData = new Array(students.length).fill(null);
       setAttendanceData(attendanceData);
@@ -406,7 +390,6 @@
       XLSX.writeFile(wb, "attendance.xlsx", { cellStyles: true });
     }
 
-    // تحديث قائمة التلاميذ عند تغيير الشعبة
     function updateStudentsList() {
       currentSection = document.getElementById("sectionSelect").value;
       students = currentSection === "A" ? studentsSectionA : studentsSectionB;
@@ -415,8 +398,6 @@
     }
 
     document.getElementById("sectionSelect").addEventListener("change", updateStudentsList);
-
-    // العرض الابتدائي للجدول
     renderTable();
   </script>
 </body>
